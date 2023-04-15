@@ -35,6 +35,14 @@ api_data = [
 
 ]
 
+team_names = [
+
+]
+
+team_names_2d = [
+
+]
+
 event_keys = [
     "2023arc",
     "2023cur",
@@ -67,6 +75,15 @@ gc = gspread.service_account(filename="json-files/credentials.json")
 sh = gc.open("6002 ZooBOTix data sheet")
 worksheet = sh.sheet1
 
+for event in event_keys:
+    with open(f"./json-files/{event}.json") as jsonFile:
+        data = json.load(jsonFile)
+        for item in data:
+            team = item["team_number"]
+            api_data_2d.append([team])
+            api_data.append(team)
+    jsonFile.close()
+
 
 def call_tba_api(url):
     r = requests.get(f"{TBA_BASE_ENDPOINT}/{url}", headers={"X-TBA-Auth-Key": TBA_AUTH_KEY})
@@ -76,20 +93,42 @@ def call_tba_api(url):
 
 def update_event_json():
     for event in event_keys:
+        with open(f"./json-files/{event}.json", "w+") as jsonFile:
+            data = call_tba_api(f"/event/{event}/teams")
+            print(json.dumps(data))
+            jsonFile.write(json.dumps(data))
+
+
+def update_team_list(update_sheet):
+    update_event_json()
+    for event in event_keys:
         with open(f"./json-files/{event}.json") as jsonFile:
-            jsonFile.write(call_tba_api(f"/event/{event}/teams"))
-        print(jsonFile)
-        jsonFile.close()
-
-
-for event in event_keys:
-    with open(f"./json-files/{event}.json") as jsonFile:
-        data = json.load(jsonFile)
+            data = json.load(jsonFile)
+            for item in data:
+                api_data.append(item["team_number"])
+                api_data_2d.append([item["team_number"]])
+                print(item["team_number"])
+    api_data.sort()
+    api_data_2d.sort()
+    print(api_data)
+    print(api_data_2d)
+    if update_sheet is True:
+        sheet.batch_update([{
+            "range": f"{team_number_column}2:{team_number_column}{len(api_data) + 1}",
+            "values:": api_data_2d
+        }])
+    for team in api_data:
         for item in data:
-            team = item["team_number"]
-            api_data_2d.append([team])
-            api_data.append(team)
-    jsonFile.close()
+            team_names.append(item["nickname"])
+            team_names_2d.append([item["nickname"]])
+            print(item["nickname"])
+    if update_sheet is True:
+        sheet.batch_update([{
+            "range": f"{team_name_column}2:{team_name_column}{len(api_data) + 1}",
+            "values": team_names_2d
+        }])
+    print(team_names)
+    print(team_names_2d)
 
 
 def update_epa():
@@ -123,6 +162,9 @@ def update_winrate():
     print(team_winrate)
     print(team_winrate_2d)
     sheet.batch_update([{
-            "range": f"{team_winrate_column}2:{team_winrate_column}{len(api_data) + 1}",
-            "values": team_winrate_2d
+        "range": f"{team_winrate_column}2:{team_winrate_column}{len(api_data) + 1}",
+        "values": team_winrate_2d
     }])
+
+
+update_team_list(False)
