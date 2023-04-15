@@ -1,0 +1,7 @@
+/.idea
+/.idea/*
+/venv
+/venv/*
+/.idea/workspace.xml
+/json-files/credentials.json
+/json-files/X-TBA-Auth-Key.json
