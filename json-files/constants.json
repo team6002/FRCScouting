@@ -3,5 +3,6 @@
   "team_name_column": "B",
   "team_state_column": "C",
   "team_divison_column": "D",
-  "team_epa_column": "E"
+  "team_epa_column": "E",
+  "team_winrate_column": "F"
 }

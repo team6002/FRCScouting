@@ -10,8 +10,9 @@ constants.close()
 team_number_column = constant["team_number_column"]
 team_name_column = constant["team_name_column"]
 team_state_column = constant["team_state_column"]
-team_divison_column = constant["team_division_column"]
+team_divison_column = constant["team_divison_column"]
 team_epa_column = constant["team_epa_column"]
+team_winrate_column = constant["team_winrate_column"]
 
 auth_key = open("./json-files/X-TBA-Auth-Key.json")
 key = json.load(auth_key)
@@ -53,6 +54,14 @@ team_epa_2d = [
 
 ]
 
+team_winrate = [
+
+]
+
+team_winrate_2d = [
+
+]
+
 gc = gspread.service_account(filename="json-files/credentials.json")
 
 sh = gc.open("6002 ZooBOTix data sheet")
@@ -65,6 +74,14 @@ def call_tba_api(url):
     return r.json()
 
 
+def update_event_json():
+    for event in event_keys:
+        with open(f"./json-files/{event}.json") as jsonFile:
+            jsonFile.write(call_tba_api(f"/event/{event}/teams"))
+        print(jsonFile)
+        jsonFile.close()
+
+
 for event in event_keys:
     with open(f"./json-files/{event}.json") as jsonFile:
         data = json.load(jsonFile)
@@ -72,6 +89,7 @@ for event in event_keys:
             team = item["team_number"]
             api_data_2d.append([team])
             api_data.append(team)
+    jsonFile.close()
 
 
 def update_epa():
@@ -93,3 +111,18 @@ def update_epa():
     sheet.batch_update([{"range": f"{team_epa_column}2:{team_epa_column}{len(team_epa_2d) + 1}", "values": team_epa_2d}])
     print(team_epa)
     print(team_epa_2d)
+
+
+def update_winrate():
+    for team in api_data:
+        winrate = stats.get_team(team)["winrate"]
+        team_winrate.append(f"{round(winrate * 100, 1)}%")
+        team_winrate_rounded = f"{round(winrate * 100, 1)}%"
+        team_winrate_2d.append([team_winrate_rounded])
+        print(f"{round(winrate * 100, 2)}%")
+    print(team_winrate)
+    print(team_winrate_2d)
+    sheet.batch_update([{
+            "range": f"{team_winrate_column}2:{team_winrate_column}{len(api_data) + 1}",
+            "values": team_winrate_2d
+    }])
