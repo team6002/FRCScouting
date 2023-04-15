@@ -4,6 +4,15 @@ import json
 import requests
 import datetime
 
+constants = open("./json-files/constants.json")
+constant = json.load(constants)
+constants.close()
+team_number_column = constant["team_number_column"]
+team_name_column = constant["team_name_column"]
+team_state_column = constant["team_state_column"]
+team_divison_column = constant["team_division_column"]
+team_epa_column = constant["team_epa_column"]
+
 auth_key = open("./json-files/X-TBA-Auth-Key.json")
 key = json.load(auth_key)
 auth_key.close()
@@ -80,7 +89,7 @@ def update_epa():
         print(f"team: {team}, epa: {epa}, rookies?: {rookies}")
         team_epa.append(epa)
         team_epa_2d.append([epa])
-    sheet.sort((1, "asc"), range=f"A2:A{len(api_data_2d) + 1}")
-    sheet.batch_update([{"range": f"E2:E{len(team_epa_2d) + 1}", "values": team_epa_2d}])
+    sheet.sort((1, "asc"), range=f"{team_number_column}2:{team_number_column}{len(api_data_2d) + 1}")
+    sheet.batch_update([{"range": f"{team_epa_column}2:{team_epa_column}{len(team_epa_2d) + 1}", "values": team_epa_2d}])
     print(team_epa)
     print(team_epa_2d)
