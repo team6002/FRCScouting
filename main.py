@@ -26,6 +26,7 @@ gc = gspread.service_account(filename="json-files/credentials.json")
 
 # Open a sheet from a spreadsheet in one go
 sheet = gc.open("6002 ZooBOTix data sheet").sheet1
+print(sheet.url)
 
 api_data_2d = [
 
@@ -75,14 +76,12 @@ gc = gspread.service_account(filename="json-files/credentials.json")
 sh = gc.open("6002 ZooBOTix data sheet")
 worksheet = sh.sheet1
 
-for event in event_keys:
-    with open(f"./json-files/{event}.json") as jsonFile:
-        data = json.load(jsonFile)
-        for item in data:
-            team = item["team_number"]
-            api_data_2d.append([team])
-            api_data.append(team)
-    jsonFile.close()
+
+def constant_update(update_sheet):
+    while True:
+        update_team_list(update_sheet=update_sheet)
+        update_epa(update_sheet=update_sheet)
+        update_winrate(update_sheet=update_sheet)
 
 
 def call_tba_api(url):
@@ -101,37 +100,45 @@ def update_event_json():
 
 def update_team_list(update_sheet):
     update_event_json()
+
     for event in event_keys:
         with open(f"./json-files/{event}.json") as jsonFile:
             data = json.load(jsonFile)
             for item in data:
                 api_data.append(item["team_number"])
                 api_data_2d.append([item["team_number"]])
-                print(item["team_number"])
+
     api_data.sort()
     api_data_2d.sort()
+
     print(api_data)
     print(api_data_2d)
+
     if update_sheet is True:
         sheet.batch_update([{
             "range": f"{team_number_column}2:{team_number_column}{len(api_data) + 1}",
-            "values:": api_data_2d
+            "values": api_data_2d
         }])
-    for team in api_data:
-        for item in data:
-            team_names.append(item["nickname"])
-            team_names_2d.append([item["nickname"]])
-            print(item["nickname"])
+
+    print(len(api_data))
+    team_names_2d.clear()
+
+    for event in event_keys:
+        with open(f"./json-files/{event}.json") as jsonFile:
+            data = json.load(jsonFile)
+            for item in data:
+                team_names.append(item["nickname"])
+                team_names_2d.append([item["nickname"]])
+
     if update_sheet is True:
+        print(len(team_names_2d))
         sheet.batch_update([{
             "range": f"{team_name_column}2:{team_name_column}{len(api_data) + 1}",
             "values": team_names_2d
         }])
-    print(team_names)
-    print(team_names_2d)
 
 
-def update_epa():
+def update_epa(update_sheet):
     api_data.sort()
     api_data_2d.sort()
     for team in api_data:
@@ -146,13 +153,14 @@ def update_epa():
         print(f"team: {team}, epa: {epa}, rookies?: {rookies}")
         team_epa.append(epa)
         team_epa_2d.append([epa])
-    sheet.sort((1, "asc"), range=f"{team_number_column}2:{team_number_column}{len(api_data_2d) + 1}")
-    sheet.batch_update([{"range": f"{team_epa_column}2:{team_epa_column}{len(team_epa_2d) + 1}", "values": team_epa_2d}])
+    if update_sheet is True:
+        sheet.sort((1, "asc"), range=f"{team_number_column}2:{team_number_column}{len(api_data_2d) + 1}")
+        sheet.batch_update([{"range": f"{team_epa_column}2:{team_epa_column}{len(team_epa_2d) + 1}", "values": team_epa_2d}])
     print(team_epa)
     print(team_epa_2d)
 
 
-def update_winrate():
+def update_winrate(update_sheet):
     for team in api_data:
         winrate = stats.get_team(team)["winrate"]
         team_winrate.append(f"{round(winrate * 100, 1)}%")
@@ -161,10 +169,14 @@ def update_winrate():
         print(f"{round(winrate * 100, 2)}%")
     print(team_winrate)
     print(team_winrate_2d)
-    sheet.batch_update([{
-        "range": f"{team_winrate_column}2:{team_winrate_column}{len(api_data) + 1}",
-        "values": team_winrate_2d
-    }])
+    if update_sheet is True:
+        sheet.sort((1, "asc"), range=f"{team_number_column}2:{team_number_column}{len(api_data_2d) + 1}")
+        sheet.batch_update([{
+            "range": f"{team_winrate_column}2:{team_winrate_column}{len(api_data) + 1}",
+            "values": team_winrate_2d
+        }])
 
 
-update_team_list(False)
+update_team_list(update_sheet=True)
+# update_epa(update_sheet=True)
+# update_winrate(update_sheet=True)
