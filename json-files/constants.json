@@ -4,5 +4,6 @@
   "team_state_column": "C",
   "team_epa_column": "D",
   "team_winrate_column": "E",
-  "team_divison_column": "F"
+  "team_divison_column": "F",
+  "spreadsheet_name": "6002 DataSheet 2024"
 }

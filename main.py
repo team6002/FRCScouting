@@ -14,6 +14,7 @@ team_state_column = constant["team_state_column"]
 team_divison_column = constant["team_divison_column"]
 team_epa_column = constant["team_epa_column"]
 team_winrate_column = constant["team_winrate_column"]
+spreadsheet_name = constant["spreadsheet_name"]
 
 auth_key = open("./json-files/X-TBA-Auth-Key.json")
 key = json.load(auth_key)
@@ -26,7 +27,7 @@ TBA_BASE_ENDPOINT = "https://www.thebluealliance.com/api/v3"
 gc = gspread.service_account(filename="json-files/credentials.json")
 
 # Open a sheet from a spreadsheet in one go
-sheet = gc.open("6002 DataSheet 2024").sheet1
+sheet = gc.open(spreadsheet_name).sheet1
 print(sheet.url)
 
 api_data_2d = [
