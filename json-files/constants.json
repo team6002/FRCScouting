@@ -2,7 +2,7 @@
   "team_number_column": "A",
   "team_name_column": "B",
   "team_state_column": "C",
-  "team_divison_column": "D",
-  "team_epa_column": "E",
-  "team_winrate_column": "F"
+  "team_epa_column": "D",
+  "team_winrate_column": "E",
+  "team_divison_column": "F"
 }
